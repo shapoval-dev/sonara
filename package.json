@@ -79,6 +79,12 @@
         "icon": "$(preview)"
       },
       {
+        "command": "sonara.review.openInBrowser",
+        "title": "Open in Browser",
+        "category": "Sonara",
+        "icon": "$(globe)"
+      },
+      {
         "command": "sonara.review.moveChange",
         "title": "Move Change",
         "category": "Sonara"
@@ -574,6 +580,11 @@
         {
           "command": "sonara.review.openPreview",
           "when": "resourceScheme == sonara-review && resourceLangId == markdown",
+          "group": "navigation@2"
+        },
+        {
+          "command": "sonara.review.openInBrowser",
+          "when": "resourceScheme == sonara-review && resourceExtname =~ /^\\.(html?|xhtml)$/",
           "group": "navigation@2"
         }
       ],

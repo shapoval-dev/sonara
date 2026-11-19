@@ -49,6 +49,17 @@ export class ReviewDiffOpener {
         void this.codeLensPrompt.showIfNeeded();
     }
 
+    async openInBrowser(uri: vscode.Uri | undefined): Promise<void> {
+        const target = uri ?? vscode.window.activeTextEditor?.document.uri;
+        const address = target ? LevelDocumentProvider.parse(target) : null;
+        const service = address ? this.services.get(address.project) : undefined;
+        if (!address || !service) {
+            await vscode.window.showInformationMessage('Sonara Review: Open in Browser works from a level diff opened in the Review panel.');
+            return;
+        }
+        await vscode.env.openExternal(vscode.Uri.file(service.absolutePath(address.repoPath)));
+    }
+
     async openWorkingFile(uri: vscode.Uri | undefined): Promise<void> {
         const target = uri ?? vscode.window.activeTextEditor?.document.uri;
         const address = target ? LevelDocumentProvider.parse(target) : null;

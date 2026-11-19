@@ -195,6 +195,8 @@ export function registerReviewModule(context: vscode.ExtensionContext, catalog: 
         }),
         loggedCommand(logger, 'sonara.review.openFile', (uri: unknown) =>
             opener.openWorkingFile(uri instanceof vscode.Uri ? uri : undefined)),
+        loggedCommand(logger, 'sonara.review.openInBrowser', (uri: unknown) =>
+            opener.openInBrowser(uri instanceof vscode.Uri ? uri : undefined)),
         loggedCommand(logger, 'sonara.review.openPreview', (uri: unknown) =>
             executeOpenPreview(uri instanceof vscode.Uri ? uri : undefined)),
         loggedCommand(logger, MOVE_CHANGE_COMMAND, (reference: unknown, direction: unknown) =>
