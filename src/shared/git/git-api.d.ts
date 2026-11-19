@@ -45,6 +45,7 @@ export interface API {
     readonly onDidCloseRepository: Event<Repository>;
     toGitUri(uri: Uri, ref: string): Uri;
     getRepository(uri: Uri): Repository | null;
+    openRepository(root: Uri): Promise<Repository | null>;
 }
 
 export interface GitExtension {

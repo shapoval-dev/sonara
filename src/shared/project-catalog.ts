@@ -2,11 +2,16 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import type { API } from './git/git-api';
 import { loadGitApi } from './git/git-extension';
+import { LinkedWorktreeOpener } from './git/linked-worktree-opener';
 import { SonaraProject } from './sonara-project';
 
 export function isInsideFolder(child: string, parent: string): boolean {
     const relative = path.relative(parent, child);
     return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
+}
+
+function isInsideWorkspace(fsPath: string): boolean {
+    return (vscode.workspace.workspaceFolders ?? []).some(folder => isInsideFolder(fsPath, folder.uri.fsPath));
 }
 
 export class ProjectCatalog implements vscode.Disposable {
@@ -32,6 +37,7 @@ export class ProjectCatalog implements vscode.Disposable {
                     this.isGitSettled = state === 'initialized';
                     this.emitter.fire();
                 }),
+                new LinkedWorktreeOpener(api, fsPath => isInsideWorkspace(fsPath), (message, error) => console.error(`Sonara: ${message}`, error)),
             );
         } else {
             this.gitProblem = loaded.reason;
@@ -52,7 +58,7 @@ export class ProjectCatalog implements vscode.Disposable {
         }
         const repositories = (this.api?.repositories ?? [])
             .map(repository => repository.rootUri)
-            .filter(root => folders.some(folder => isInsideFolder(root.fsPath, folder.uri.fsPath)))
+            .filter(root => isInsideWorkspace(root.fsPath))
             .sort((a, b) => a.fsPath.localeCompare(b.fsPath));
         for (const root of repositories) {
             if (!projects.has(root.fsPath)) {
