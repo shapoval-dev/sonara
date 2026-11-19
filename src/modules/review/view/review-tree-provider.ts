@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { linkedWorktreeOf } from '../git/linked-worktree';
 import { TreeExpansion } from '../../../shared/tree-expansion';
 import { ReviewService } from '../review-service';
 import { ReviewServices } from '../review-services';
@@ -83,6 +84,25 @@ function countOf(count: number, noun: string): string {
     return `${count} ${noun}${count === 1 ? '' : 's'}`;
 }
 
+function repositoryRootOf(service: ReviewService): string {
+    return service.getRepositoryRoot() || service.project.uri.fsPath;
+}
+
+function withWorktreesAfterMain(services: readonly ReviewService[]): ReviewService[] {
+    const roots = new Set(services.map(repositoryRootOf));
+    const worktreesOf = new Map<string, ReviewService[]>();
+    const mains: ReviewService[] = [];
+    for (const service of services) {
+        const mainRoot = linkedWorktreeOf(repositoryRootOf(service))?.mainRoot;
+        if (mainRoot !== undefined && roots.has(mainRoot)) {
+            worktreesOf.set(mainRoot, [...(worktreesOf.get(mainRoot) ?? []), service]);
+        } else {
+            mains.push(service);
+        }
+    }
+    return mains.flatMap(service => [service, ...(worktreesOf.get(repositoryRootOf(service)) ?? [])]);
+}
+
 export class ReviewTreeProvider implements vscode.TreeDataProvider<ReviewNode>, vscode.Disposable {
     static readonly VIEW_ID = 'sonara.review';
 
@@ -123,7 +143,7 @@ export class ReviewTreeProvider implements vscode.TreeDataProvider<ReviewNode>, 
             if (services.length === 1) {
                 return this.levelsOf(services[0]);
             }
-            return services.map(service => ({ type: 'repository', project: service.project.uri.fsPath }));
+            return withWorktreesAfterMain(services).map(service => ({ type: 'repository', project: service.project.uri.fsPath }));
         }
         switch (node.type) {
             case 'repository': {
@@ -220,9 +240,11 @@ export class ReviewTreeProvider implements vscode.TreeDataProvider<ReviewNode>, 
         const state = isActive
             ? this.expansion.isExpanded(key, true) ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.Collapsed
             : vscode.TreeItemCollapsibleState.None;
-        const item = new vscode.TreeItem(service?.project.name ?? path.basename(node.project), state);
+        const name = service?.project.name ?? path.basename(node.project);
+        const worktree = linkedWorktreeOf(service ? repositoryRootOf(service) : node.project);
+        const item = new vscode.TreeItem(worktree ? `${name} (branch ${worktree.branch})` : name, state);
         item.id = this.expansion.itemId(key);
-        item.iconPath = new vscode.ThemeIcon('repo');
+        item.iconPath = new vscode.ThemeIcon(worktree ? 'repo-forked' : 'repo');
         if (service && isActive) {
             const summary = summarizeLevel(service.getFiles().flatMap(file => file.atoms));
             const newCount = summarizeLevel(service.getAtomsByLevel().get('new') ?? []).fileCount;
@@ -232,6 +254,9 @@ export class ReviewTreeProvider implements vscode.TreeDataProvider<ReviewNode>, 
         } else {
             item.description = service?.getIdleReason() || undefined;
             item.tooltip = node.project;
+        }
+        if (worktree) {
+            item.tooltip = `${item.tooltip}\nworktree of ${worktree.mainRoot}, branch ${worktree.branch}`;
         }
         item.contextValue = 'reviewRepository';
         return item;
