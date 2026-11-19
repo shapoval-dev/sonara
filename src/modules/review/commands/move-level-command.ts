@@ -2,37 +2,32 @@ import * as vscode from 'vscode';
 import { LevelMoveReport, LevelSelection } from '../review-level-mover';
 import { ReviewService, inactiveMessage } from '../review-service';
 import { ReviewServices } from '../review-services';
-import { BACKLOG_LEVEL, LEVEL_LABELS, REVIEW_LEVELS, REVIEW_LEVELS_TOP_DOWN, ReviewLevel, SHOWN_LEVELS, SHOWN_LEVELS_TOP_DOWN, ShownLevel, reviewLevelRank } from '../types';
+import { LEVEL_LABELS, ReviewLevel, SHOWN_LEVELS, SHOWN_LEVELS_TOP_DOWN } from '../types';
 import { LevelContentNode, ReviewNode } from '../view/review-node';
 import { ReviewTreeProvider } from '../view/review-tree-provider';
 import { pickOne } from '../../../shared/quick-input';
 
-export type MoveDirection = 'up' | 'down' | 'pick' | ShownLevel;
+export type MoveDirection = 'up' | 'down' | 'pick' | ReviewLevel;
 
-interface LevelPickItem<L extends ShownLevel> extends vscode.QuickPickItem {
+interface LevelPickItem<L extends ReviewLevel> extends vscode.QuickPickItem {
     level: L;
 }
 
 const NOTHING_MOVED: LevelMoveReport = { failures: [], refusals: [], stalePaths: [] };
 
 export function shiftedLevel(level: ReviewLevel, direction: 'up' | 'down'): ReviewLevel | null {
-    const rank = reviewLevelRank(level) + (direction === 'up' ? 1 : -1);
-    return rank >= 0 && rank < REVIEW_LEVELS.length ? REVIEW_LEVELS[rank] : null;
-}
-
-function shiftedShownLevel(level: ShownLevel, direction: 'up' | 'down'): ShownLevel | null {
     const rank = SHOWN_LEVELS.indexOf(level) + (direction === 'up' ? 1 : -1);
     return rank >= 0 && rank < SHOWN_LEVELS.length ? SHOWN_LEVELS[rank] : null;
 }
 
-function targetLevel(direction: MoveDirection, current: ShownLevel, picked: ShownLevel | null): ShownLevel | null {
+function targetLevel(direction: MoveDirection, current: ReviewLevel, picked: ReviewLevel | null): ReviewLevel | null {
     if (direction === 'pick') {
         return picked;
     }
-    return direction === 'up' || direction === 'down' ? shiftedShownLevel(current, direction) : direction;
+    return direction === 'up' || direction === 'down' ? shiftedLevel(current, direction) : direction;
 }
 
-async function pickFrom<L extends ShownLevel>(levels: readonly L[], current: L): Promise<L | null> {
+async function pickFrom<L extends ReviewLevel>(levels: readonly L[], current: L): Promise<L | null> {
     const items: LevelPickItem<L>[] = levels.map(level => ({
         level,
         label: LEVEL_LABELS[level],
@@ -43,38 +38,21 @@ async function pickFrom<L extends ShownLevel>(levels: readonly L[], current: L):
 }
 
 export function pickLevel(current: ReviewLevel): Promise<ReviewLevel | null> {
-    return pickFrom(REVIEW_LEVELS_TOP_DOWN, current);
+    return pickFrom(SHOWN_LEVELS_TOP_DOWN, current);
 }
 
 interface MoveBatch {
     service: ReviewService;
-    source: ShownLevel;
-    target: ShownLevel;
+    source: ReviewLevel;
+    target: ReviewLevel;
     selections: LevelSelection[];
 }
 
 async function moveSelections(batch: MoveBatch): Promise<LevelMoveReport> {
-    const repoPaths = batch.selections.map(selection => selection.repoPath);
-    if (batch.target === BACKLOG_LEVEL) {
-        if (batch.source === 'new') {
-            await batch.service.setBacklog(repoPaths, true);
-            return NOTHING_MOVED;
-        }
-        const report = await batch.service.moveToLevel(batch.selections, 'new');
-        const kept = new Set([...report.failures.map(failure => failure.path), ...report.stalePaths]);
-        await batch.service.setBacklog(repoPaths.filter(repoPath => !kept.has(repoPath)), true);
-        return report;
-    }
-    if (batch.source === BACKLOG_LEVEL) {
-        await batch.service.setBacklog(repoPaths, false);
-        if (batch.target === 'new') {
-            return NOTHING_MOVED;
-        }
-    }
     return await batch.service.moveToLevel(batch.selections, batch.target);
 }
 
-function skipReason(direction: MoveDirection, current: ShownLevel, target: ShownLevel | null): string | null {
+function skipReason(direction: MoveDirection, current: ReviewLevel, target: ReviewLevel | null): string | null {
     if (!target) {
         return `there is no level ${direction === 'up' ? 'above' : 'below'} ${LEVEL_LABELS[current]}`;
     }

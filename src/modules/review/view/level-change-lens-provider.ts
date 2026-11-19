@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { LevelChangeReference } from '../review-service';
-import { LevelChange, REVIEW_LEVELS, ReviewLevel, reviewLevelRank } from '../types';
+import { LevelChange, ReviewLevel, SHOWN_LEVELS } from '../types';
 import { LevelDocumentProvider } from './level-document-provider';
 
 export const MOVE_CHANGE_COMMAND = 'sonara.review.moveChange';
@@ -56,13 +56,13 @@ export class LevelChangeLensProvider implements vscode.CodeLensProvider, vscode.
         label: string | null,
         isMode: boolean,
     ): vscode.CodeLens[] {
-        const rank = reviewLevelRank(level);
+        const rank = SHOWN_LEVELS.indexOf(level);
         const what = isMode ? 'Permissions ' : '';
         const lenses: vscode.CodeLens[] = [];
         if (label) {
             lenses.push(new vscode.CodeLens(range, { title: label, command: '' }));
         }
-        if (rank < REVIEW_LEVELS.length - 1) {
+        if (rank < SHOWN_LEVELS.length - 1) {
             lenses.push(new vscode.CodeLens(range, {
                 title: `Move ${what}Up`,
                 command: MOVE_CHANGE_COMMAND,

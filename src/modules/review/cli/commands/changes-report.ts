@@ -1,5 +1,5 @@
 import { fileChangeId } from '../../frontiers/level-changes';
-import { REVIEW_LEVELS_TOP_DOWN } from '../../types';
+import { SHOWN_LEVELS_TOP_DOWN } from '../../types';
 import { CliError } from '../cli-error';
 import { CommandResult } from '../command-result';
 import { ReviewSession } from '../review-session';
@@ -36,7 +36,7 @@ export async function reportChanges(session: ReviewSession, file: string): Promi
         throw new CliError('not-changed', `git does not report "${repoPath}" as changed, so it has no review levels`);
     }
     const levels: LevelEntry[] = [];
-    for (const level of REVIEW_LEVELS_TOP_DOWN) {
+    for (const level of SHOWN_LEVELS_TOP_DOWN) {
         const document = await session.levelDocument(repoPath, level);
         levels.push({
             level,

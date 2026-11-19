@@ -7,7 +7,7 @@
   "icon": "media/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OleksandrWebLab/sonara"
+    "url": "https://github.com/shapoval-dev/sonara"
   },
   "engines": {
     "vscode": "^1.85.0"

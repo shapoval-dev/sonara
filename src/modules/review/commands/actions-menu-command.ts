@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { BACKLOG_LEVEL, LEVEL_LABELS, SHOWN_LEVELS, ShownLevel } from '../types';
+import { LEVEL_LABELS, SHOWN_LEVELS, ReviewLevel } from '../types';
 import { LevelContentNode, ReviewNode } from '../view/review-node';
 import { pickOne } from '../../../shared/quick-input';
 
@@ -9,7 +9,7 @@ interface ActionItem extends vscode.QuickPickItem {
 
 const SEPARATOR: ActionItem = { label: '', kind: vscode.QuickPickItemKind.Separator };
 
-function levelSuffix(level: ShownLevel): string {
+function levelSuffix(level: ReviewLevel): string {
     return `${level.slice(0, 1).toUpperCase()}${level.slice(1)}`;
 }
 
@@ -21,7 +21,7 @@ function moveActions(node: LevelContentNode): ActionItem[] {
     if (node.level !== 'staged') {
         actions.push({ label: `Move ${what}Up`, command: `${prefix}Up` });
     }
-    if (node.level !== BACKLOG_LEVEL) {
+    if (node.level !== 'backlog') {
         actions.push({ label: `Move ${what}Down`, command: `${prefix}Down` });
     }
     actions.push(SEPARATOR);

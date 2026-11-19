@@ -1,4 +1,4 @@
-import { REVIEW_LEVELS_TOP_DOWN, ReviewFileState, ReviewLevel } from '../../types';
+import { SHOWN_LEVELS_TOP_DOWN, ReviewFileState, ReviewLevel } from '../../types';
 import { CommandResult } from '../command-result';
 import { ReviewSession } from '../review-session';
 
@@ -9,7 +9,7 @@ interface LevelCount {
 }
 
 export function countLevels(files: readonly ReviewFileState[]): LevelCount[] {
-    return REVIEW_LEVELS_TOP_DOWN.map(level => {
+    return SHOWN_LEVELS_TOP_DOWN.map(level => {
         const onLevel = files.filter(file => file.atoms.some(state => state.level === level));
         return {
             level,

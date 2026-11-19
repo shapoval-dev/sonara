@@ -1,12 +1,8 @@
-export const REVIEW_LEVELS = ['new', 'queued', 'read', 'verified', 'staged'] as const;
+export const REVIEW_LEVELS = ['new', 'backlog', 'queued', 'read', 'verified', 'staged'] as const;
 
 export type ReviewLevel = typeof REVIEW_LEVELS[number];
 
-export const BACKLOG_LEVEL = 'backlog';
-
-export type ShownLevel = ReviewLevel | typeof BACKLOG_LEVEL;
-
-export const LEVEL_LABELS: Readonly<Record<ShownLevel, string>> = {
+export const LEVEL_LABELS: Readonly<Record<ReviewLevel, string>> = {
     backlog: 'Backlog',
     new: 'New',
     queued: 'Queued',
@@ -17,15 +13,11 @@ export const LEVEL_LABELS: Readonly<Record<ShownLevel, string>> = {
 
 export const REVIEW_LEVELS_TOP_DOWN: readonly ReviewLevel[] = [...REVIEW_LEVELS].reverse();
 
-export const SHOWN_LEVELS: readonly ShownLevel[] = [BACKLOG_LEVEL, ...REVIEW_LEVELS];
+export const SHOWN_LEVELS: readonly ReviewLevel[] = ['backlog', 'new', 'queued', 'read', 'verified', 'staged'];
 
-export const SHOWN_LEVELS_TOP_DOWN: readonly ShownLevel[] = [...SHOWN_LEVELS].reverse();
+export const SHOWN_LEVELS_TOP_DOWN: readonly ReviewLevel[] = [...SHOWN_LEVELS].reverse();
 
-export function reviewLevelOf(level: ShownLevel): ReviewLevel {
-    return level === BACKLOG_LEVEL ? 'new' : level;
-}
-
-export const STORED_REVIEW_LEVELS = ['queued', 'read', 'verified'] as const;
+export const STORED_REVIEW_LEVELS = ['backlog', 'queued', 'read', 'verified'] as const;
 
 export type StoredReviewLevel = typeof STORED_REVIEW_LEVELS[number];
 

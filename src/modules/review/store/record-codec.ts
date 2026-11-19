@@ -5,7 +5,7 @@ export const RECORD_VERSION = 5;
 
 const LEVEL_NAME_VERSION = 4;
 const PREVIOUS_VERSION = 3;
-export const EARLIER_LEVEL_KEYS: Readonly<Record<StoredReviewLevel, string>> = { queued: 'seen', read: 'looked', verified: 'verified' };
+export const EARLIER_LEVEL_KEYS: Readonly<Record<StoredReviewLevel, string>> = { backlog: 'backlog', queued: 'seen', read: 'looked', verified: 'verified' };
 const HASH_PATTERN = /^[0-9a-f]{64}$/;
 const PREVIOUS_MISSING = 'missing';
 
