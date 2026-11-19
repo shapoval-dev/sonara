@@ -56,8 +56,14 @@ interface MoveBatch {
 async function moveSelections(batch: MoveBatch): Promise<LevelMoveReport> {
     const repoPaths = batch.selections.map(selection => selection.repoPath);
     if (batch.target === BACKLOG_LEVEL) {
-        await batch.service.setBacklog(repoPaths, true);
-        return NOTHING_MOVED;
+        if (batch.source === 'new') {
+            await batch.service.setBacklog(repoPaths, true);
+            return NOTHING_MOVED;
+        }
+        const report = await batch.service.moveToLevel(batch.selections, 'new');
+        const kept = new Set([...report.failures.map(failure => failure.path), ...report.stalePaths]);
+        await batch.service.setBacklog(repoPaths.filter(repoPath => !kept.has(repoPath)), true);
+        return report;
     }
     if (batch.source === BACKLOG_LEVEL) {
         await batch.service.setBacklog(repoPaths, false);
@@ -75,7 +81,7 @@ function skipReason(direction: MoveDirection, current: ShownLevel, target: Shown
     if (target === current) {
         return `the changes are already on ${LEVEL_LABELS[target]}`;
     }
-    return target === BACKLOG_LEVEL && current !== 'new' ? `only changes on ${LEVEL_LABELS.new} can be sent to ${LEVEL_LABELS[BACKLOG_LEVEL]}` : null;
+    return null;
 }
 
 export async function executeMoveLevel(

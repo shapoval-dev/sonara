@@ -26,7 +26,7 @@ function moveActions(node: LevelContentNode): ActionItem[] {
     }
     actions.push(SEPARATOR);
     for (const level of SHOWN_LEVELS) {
-        if (level !== node.level && (level !== BACKLOG_LEVEL || node.level === 'new')) {
+        if (level !== node.level) {
             actions.push({ label: `Move ${what}to ${LEVEL_LABELS[level]}`, command: `${prefix}To${levelSuffix(level)}` });
         }
     }

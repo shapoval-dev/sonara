@@ -670,7 +670,7 @@
         },
         {
           "command": "sonara.review.moveToBacklog",
-          "when": "view == sonara.review && viewItem =~ /^review(Folder|File)\\.new$/",
+          "when": "view == sonara.review && viewItem =~ /^review(Folder|File)\\.(new|queued|read|verified|staged)$/",
           "group": "2_moveTo@6"
         },
         {
@@ -720,7 +720,7 @@
         },
         {
           "command": "sonara.review.moveAllToBacklog",
-          "when": "view == sonara.review && viewItem =~ /^reviewLevel\\.new$/",
+          "when": "view == sonara.review && viewItem =~ /^reviewLevel\\.(new|queued|read|verified|staged)$/",
           "group": "2_moveTo@6"
         },
         {
