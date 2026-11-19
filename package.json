@@ -62,6 +62,12 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "sonara.review.openGitGraph",
+        "title": "Open Git Graph",
+        "category": "Sonara",
+        "icon": "$(git-branch)"
+      },
+      {
         "command": "sonara.review.openLevelDiff",
         "title": "Open Level Changes",
         "category": "Sonara"
@@ -521,6 +527,11 @@
           "group": "navigation@1"
         },
         {
+          "command": "sonara.review.openGitGraph",
+          "when": "view == sonara.review && sonara.review.gitGraphAvailable && sonara.review.singleRepository",
+          "group": "navigation@2"
+        },
+        {
           "command": "sonara.voice.toggleShowAll.expand",
           "when": "view == sonara.voice.log && sonara.voice.log.canToggleShowAll && !sonara.voice.log.showAll",
           "group": "navigation@1"
@@ -623,6 +634,11 @@
           "command": "sonara.codeMap.delete",
           "when": "view == sonara.codeMap && viewItem =~ /^codeMap(File|Folder)$/",
           "group": "5_modification@1"
+        },
+        {
+          "command": "sonara.review.openGitGraph",
+          "when": "view == sonara.review && viewItem == reviewRepository && sonara.review.gitGraphAvailable",
+          "group": "inline@0"
         },
         {
           "command": "sonara.review.expandFolder",
@@ -771,6 +787,10 @@
         }
       ],
       "commandPalette": [
+        {
+          "command": "sonara.review.openGitGraph",
+          "when": "false"
+        },
         {
           "command": "sonara.codeMap.expandFolder",
           "when": "false"

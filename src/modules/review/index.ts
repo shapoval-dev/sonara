@@ -8,6 +8,7 @@ import { OutputReviewLogger } from './logging/output-review-logger';
 import { ReviewLogger } from './logging/review-logger';
 import { executeMoveChange, executeMoveChangeAtCursor, executeNavigateNewChange } from './commands/change-commands';
 import { executeCopyPaths, executeDelete, executeOpenWithDefaultApp, executeRevealInOS } from './commands/file-system-commands';
+import { executeOpenGitGraph, trackGitGraph } from './commands/git-graph-command';
 import { executeRevert } from './commands/revert-command';
 import { MoveDirection, executeMoveLevel } from './commands/move-level-command';
 import { executeCheckStorage } from './commands/check-storage-command';
@@ -135,7 +136,7 @@ export function registerReviewModule(context: vscode.ExtensionContext, catalog: 
         treeView.message = viewMessage(running, catalog);
         treeView.badge = newChangesBadge(running.filter(service => service.isActive()));
     };
-    context.subscriptions.push(services.onDidChange(updateView));
+    context.subscriptions.push(services.onDidChange(updateView), trackGitGraph(services));
     const documents = new LevelDocumentProvider(services);
     const binaryPreview = new BinaryLevelPreview(
         vscode.Uri.joinPath(context.globalStorageUri, 'review-binary-preview'),
@@ -182,6 +183,7 @@ export function registerReviewModule(context: vscode.ExtensionContext, catalog: 
                 await executeCheckStorage(output, reviewDir(service.project));
             }
         }),
+        loggedCommand(logger, 'sonara.review.openGitGraph', (node: unknown) => executeOpenGitGraph(services, node as ReviewNode | undefined)),
         loggedCommand(logger, 'sonara.review.refresh', async () => {
             (await activeServices()).forEach(service => service.requestFullScan());
         }),
