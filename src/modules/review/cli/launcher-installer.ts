@@ -6,7 +6,7 @@ import { ReviewLogger } from '../logging/review-logger';
 const CLI_ENTRY = path.join('out', 'modules', 'review', 'cli', 'main.js');
 const EXECUTABLE_MODE = 0o755;
 
-function shellScript(entry: string, siblings: string): string {
+function shellScript(entry: string, siblings: string, runtime: string): string {
     return `#!/bin/sh
 project="$(CDPATH= cd -- "$(dirname -- "$0")/../../.." && pwd)"
 cli='${entry}'
@@ -19,11 +19,14 @@ if [ ! -f "$cli" ]; then
     echo "sonara-review: the Sonara extension is not installed where this launcher expects it ($cli). Open the project in VS Code once to refresh the launcher." >&2
     exit 3
 fi
-exec node "$cli" --project "$project" "$@"
+if command -v node >/dev/null 2>&1; then
+    exec node "$cli" --project "$project" "$@"
+fi
+ELECTRON_RUN_AS_NODE=1 exec '${runtime}' "$cli" --project "$project" "$@"
 `;
 }
 
-function batchScript(entry: string): string {
+function batchScript(entry: string, runtime: string): string {
     return `@echo off\r
 setlocal\r
 for %%I in ("%~dp0..\\..\\..") do set "SONARA_PROJECT=%%~fI"\r
@@ -31,7 +34,12 @@ if not exist "${entry}" (\r
     echo sonara-review: the Sonara extension is not installed where this launcher expects it. Open the project in VS Code once to refresh the launcher. 1>&2\r
     exit /b 3\r
 )\r
-node "${entry}" --project "%SONARA_PROJECT%" %*\r
+where node >nul 2>nul && (\r
+    node "${entry}" --project "%SONARA_PROJECT%" %*\r
+    exit /b\r
+)\r
+set ELECTRON_RUN_AS_NODE=1\r
+"${runtime}" "${entry}" --project "%SONARA_PROJECT%" %*\r
 `;
 }
 
@@ -41,8 +49,8 @@ export class ReviewCliLauncher {
         const siblings = path.join(path.dirname(extensionPath), '*sonara-*', CLI_ENTRY);
         const reviewRoot = reviewDirIn(projectPath);
         const files: [string, string][] = [
-            [path.join(reviewRoot, REVIEW_CLI_NAME), shellScript(entry, siblings)],
-            [path.join(reviewRoot, `${REVIEW_CLI_NAME}.cmd`), batchScript(entry)],
+            [path.join(reviewRoot, REVIEW_CLI_NAME), shellScript(entry, siblings, process.execPath)],
+            [path.join(reviewRoot, `${REVIEW_CLI_NAME}.cmd`), batchScript(entry, process.execPath)],
         ];
         try {
             fs.mkdirSync(reviewRoot, { recursive: true });
