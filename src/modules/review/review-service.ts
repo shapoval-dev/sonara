@@ -10,7 +10,8 @@ import { ReviewLogger } from './logging/review-logger';
 import { describeGeneration } from './model/file-generation';
 import { ProgressRunner } from './progress-runner';
 import { ReviewEngine, createReviewEngine } from './review-engine';
-import { ReviewFileReverter, RevertReport, RevertTarget } from './review-file-reverter';
+import { MISSING_MODE, modeOfState } from './model/file-state';
+import { ReviewFileReverter, RevertLayer, RevertReport, RevertTarget } from './review-file-reverter';
 import { LevelMoveReport, LevelMoveRequest, LevelSelection, requestsFromSelections } from './review-level-mover';
 import { ReviewPasses } from './review-passes';
 import { ReviewStorageNotices } from './review-storage-notices';
@@ -27,6 +28,11 @@ const NOTIFICATION_PROGRESS_THRESHOLD = 50;
 
 const windowProgress: ProgressRunner = async <T>(title: string, task: () => Promise<T>): Promise<T> =>
     await vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title }, task);
+
+export interface RevertRequest {
+    repoPath: string;
+    layer: RevertLayer;
+}
 
 export interface LevelChangeReference {
     repoPath: string;
@@ -288,7 +294,7 @@ export class ReviewService implements vscode.Disposable {
         return { report, remainingOnLevel };
     }
 
-    async revertFiles(repoPaths: readonly string[]): Promise<RevertReport> {
+    async revertFiles(requests: readonly RevertRequest[]): Promise<RevertReport> {
         const engine = this.engine;
         const passes = this.passes;
         const reverter = this.reverter;
@@ -297,7 +303,7 @@ export class ReviewService implements vscode.Disposable {
             return report;
         }
         const targets: RevertTarget[] = [];
-        for (const repoPath of repoPaths) {
+        for (const { repoPath, layer } of requests) {
             const file = this.getFile(repoPath);
             if (!file) {
                 continue;
@@ -306,7 +312,7 @@ export class ReviewService implements vscode.Disposable {
                 report.failures.push(`${repoPath}: a submodule, link or conflicted file is not reverted here`);
                 continue;
             }
-            targets.push({ repoPath, isInHead: file.scanned.isInHead });
+            targets.push({ repoPath, layer, isInHead: file.scanned.isInHead, isInIndex: (modeOfState(file.scanned.indexState) ?? MISSING_MODE) !== MISSING_MODE });
         }
         await this.runExclusive(async () => {
             const result = await reverter.revert(targets);
