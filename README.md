@@ -1,274 +1,104 @@
-# Sonara
+<p align="center">
+  <img src="media/brand/banner.png" alt="Sonara - Your workspace for AI-assisted development" width="960">
+</p>
 
-Tasks, voice dictation, time tracking, and step-by-step review of uncommitted changes for VS Code - all stored as plain files inside your project. No account, no cloud, no telemetry. Everything runs locally.
+<h1 align="center">Sonara</h1>
 
-![Sonara overview](./media/screenshots/overview.png)
+<p align="center"><strong>Your workspace for AI-assisted development.</strong></p>
+<p align="center">Capture tasks by voice. Review what your agent changes. Keep your project and your time under control.</p>
 
-Sonara adds a sidebar with five panels - **Tasks**, **Review**, **Code Map**, **Voice Log**, and **Voice Transcripts** - plus a **Time Tracker** in the status bar. Each project keeps its own data under its own `.vscode/sonara/`. A project is a workspace folder or a git repository inside it - the same repositories Source Control shows - so a folder that holds several repositories gives one project per repository.
+<p align="center">
+  <a href="https://github.com/shapoval-dev/sonara/releases"><img src="https://img.shields.io/badge/Download-VSIX-8b5cf6?style=flat-square" alt="Download VSIX"></a>
+  <img src="https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?style=flat-square" alt="VS Code 1.85+">
+  <img src="https://img.shields.io/badge/License-MIT-8b5cf6?style=flat-square" alt="MIT license">
+  <img src="https://img.shields.io/badge/Local--first-No_telemetry-64748b?style=flat-square" alt="Local-first, no telemetry">
+</p>
 
-Every list or input Sonara opens at the top of the window has a close button in its title bar, so it can be dismissed on a touch screen without an Escape key.
+<p align="center">
+  <a href="#quick-start">Quick start</a> · <a href="#features">Features</a> · <a href="#code-review-built-for-ai-agents">Code review</a> · <a href="#documentation">Documentation</a>
+</p>
+
+## Why Sonara?
+
+AI agents can write code faster than you can read it. Meanwhile, tasks, notes and review decisions end up scattered across chat windows and tools. Sonara brings them into VS Code, with project data stored as ordinary files rather than in another account or cloud service.
+
+<p align="center">
+  <img src="media/screenshots/overview.png" alt="Sonara interface in VS Code" width="760">
+</p>
 
 ## Features
 
-### Tasks
+| | Capability | What it does for you |
+|---|---|---|
+| <img src="media/brand/tasks.png" width="24" alt=""> | **Tasks** | Capture and organize Markdown tasks with priorities, sprints and labels. Copy task context straight into an AI assistant. |
+| <img src="media/brand/review.png" width="24" alt=""> | **Code Review** | Review uncommitted Git changes in levels, down to individual hunks. New edits return to New without erasing your earlier review decisions. |
+| <img src="media/brand/code-map.png" width="24" alt=""> | **Code Map** | See file counts, lines of code, sizes and uncommitted changes across your repositories. |
+| <img src="media/brand/voice-log.png" width="24" alt=""> | **Voice Dictation** | Speak prompts and notes using local Whisper transcription, with an editable project vocabulary and searchable history. |
+| <img src="media/brand/voice-transcripts.png" width="24" alt=""> | **Transcription** | Turn existing audio and video files into searchable Markdown transcripts. |
+| <img src="media/brand/time-tracking.png" width="24" alt=""> | **Time Tracking** | Track time against your active task and keep daily records as JSON. |
+| <img src="media/brand/media-preview.png" width="24" alt=""> | **Media Preview** | Play audio and video inside VS Code, including AAC audio via a temporary FFmpeg conversion. |
 
-Manage project tasks as plain markdown files - they travel with your repository.
+## Code review built for AI agents
 
-- One markdown file per task with YAML frontmatter metadata
-- Fields: title, status, priority, sprint, labels, created
-- Webview panel groups tasks by status: Activity, Inbox, Backlog, To Do, In Progress, Ready for Review, Done, Released, Cancelled
-- Five priority levels: Highest, High, Medium, Low, Lowest
-- Filter by sprint, label, and priority directly in the panel
-- Create, edit, and delete tasks without leaving VS Code
-- "Copy Agent Context" puts a task's details on the clipboard for pasting into an AI assistant
-- Stored under `.vscode/sonara/tasks/` - commit them with your code or keep them local
-- Every command and panel action is logged to the **Sonara Tasks** output channel, with the error and its stack trace when something fails
+Git's standard changed/staged workflow does not tell you which edits you have already inspected. Sonara keeps intermediate review levels on top of Git, without requiring a commit for every review decision.
 
-### Review
+<p align="center"><img src="media/brand/review-flow.png" width="760" alt="New, Queued, Read, Verified, Staged review levels, with Backlog for deferred changes"></p>
 
-Review uncommitted changes in steps instead of two buckets (changed / staged). Built for code written by AI agents: mark what you have already read, and anything the agent changes afterwards comes back as new.
+- Move individual hunks, files, folders or whole levels as you review.
+- See the diff for a single level instead of reading every uncommitted change again.
+- New edits return to **New**, while previously accepted versions remain on their levels.
+- Use **Backlog** for changes you want to defer. **Staged** is the real Git index.
+- Review multiple repositories and worktrees; compare image, audio and video changes visually.
 
-- Five levels, from top to bottom: **Staged Changes**, **Verified**, **Read**, **Queued**, **New**. Staged Changes is the real git stage; the other levels are kept by the extension
-- **Backlog** is a level shown under New for changes you do not want to look at yet, such as edits of temporary or system files. It works like the other levels: it keeps the accepted version of the file, a file or a single change can be moved there from any level with **Move to Backlog** (from New also with **Move Down**), and from there to any level. A new edit of a file always lands on New, even when its earlier changes are on Backlog: the backlog changes stay where they are, the new edit shows on New next to them. The badge, the status bar and `new: N` do not count Backlog
-- Every git repository of the window is reviewed at once, the same repositories Source Control shows. With several of them the panel shows one row per repository, `new: N · changed: N · lines: N` (the last number is how many lines the files tracked by git have on disk now, not a sum of the levels), with its levels inside, the way Source Control groups changes; with one repository the levels sit at the top. Each repository keeps its levels in its own `.vscode/sonara/review/`
-- The Review view carries a badge with the number of files that have changes on New in all repositories, so a glance at the sidebar is enough to see there is something to look at; hover it for their lines
-- The panel lists exactly the files git reports as changed, grouped by level, as a folder tree or a flat list (`sonara.review.viewMode` and `sonara.review.compactFolders`). Each level shows `files: N (A… M… D…) · lines: +X -Y`: how many files were added, modified and deleted, and how many lines were added and removed, the way git counts them; a binary file has no lines
-- A file row carries one status letter on the right, Sonara's own, in the usual git colors: what happened to the file on this level compared with the level below (`A` added, `M` modified, `D` deleted, `U` conflict). The git letters and colors that other views put on files are left out of the panel
-- Each file shows its added and removed lines on this level (`+X -Y`); a binary file shows none
-- Each folder shows how many changed files it holds, subfolders included, and their lines (`files: N · lines: +X -Y`); hover it for the same summary as a level
-- A repository, a level and a folder have **Expand All** and **Collapse All** buttons that open or close everything inside them, folders included; Collapse All keeps the level or folder itself open
-- A git worktree (a second working copy of a repository, such as one an agent made for its branch) gets its own row right under the repository it belongs to, with a forked icon and its branch in brackets: `api (branch fix-login)`; the tooltip names the main repository. Sonara asks git for the worktrees of every open repository and opens the ones inside the workspace through the built-in Git extension, so they show up in Review and Source Control without opening a file from them first
-- With the [Git Graph](https://marketplace.visualstudio.com/items?itemName=mhutchie.git-graph) extension installed, a repository row has an **Open Git Graph** button that opens the commit graph of that repository; with one repository the button sits in the title of the Review view. Without Git Graph the button is not shown
-- Move a folder, a file, or a whole level with **Move Up**, **Move Down**, or straight to a level with **Move to Read**, **Move to Verified** and the rest, right in the context menu. Moving to Staged Changes stages the changes, moving down from it unstages them
-- Click a file to open the changes of that level only: the left side is `HEAD` plus all levels above, the right side adds this level. Both sides are read-only; **Open File** opens the real file for editing, and for a markdown file **Open Preview** renders the right side in a tab of the same column; for an HTML file **Open in Browser** opens the file from disk in the default browser
-- A binary file is not forced into a text comparison: both versions open side by side in one Sonara tab, before on the left and after on the right, with their sizes: an image as an image, audio in a player, video in a video player; other types show their sizes only. An SVG image opens the same way, as pictures before and after, although git sees it as text. Images have a zoom bar: zoom out, zoom in, Fit to Window and 100%, and Ctrl with the mouse wheel zooms around the pointer; both sides share the zoom and scroll together. AAC sound plays the same way as in the Media Preview below: from a copy with the sound converted to MP3. The two audio or video players are linked: play, pause, seeking and speed on one are repeated on the other, so both stay on the same second; when one version is shorter, it stops on its last frame while the longer one goes on, and seeking back brings both together again. The tab is reused: clicking the next binary file replaces its content instead of opening another tab. Levels keep copies of binary files up to 50 MB, so any level opens as a before/after pair; a larger file is kept by its fingerprint only, and a side that was not kept, was added or was deleted says so in its place
-- **Revert Changes** in the context menu of a file or folder undoes the action of the level it is on, after a confirmation. On every level except Staged Changes (New, Backlog, Queued, Read, Verified: for git they are all one layer, the working tree) the files on disk go back to what is staged: a deleted file comes back, a changed file is restored, a file that is not staged is moved to the Trash; the index is never touched. On Staged Changes the files go back to `HEAD`, staged and on disk. It cannot be undone, so the confirmation says what will be lost
-- **Open with Default Application** in the context menu of a file (Review and Code Map) opens it with the program the operating system picks for its type, a PDF in the PDF viewer for example
-- The context menu of a file or folder also has the usual actions: **Open Containing Folder**, **Copy Path**, **Copy Relative Path** and **Delete** (moves it to the Trash after a confirmation; a folder goes with everything in it, including files without changes). Copy and Delete work on every selected row. The `...` button on a row opens the same actions as a list, for touch screens and anywhere a right click is out of reach
-- A created or deleted file shows one row of actions, not two: its existence travels with its content, and only a mode change keeps a row of its own, and its actions are named **Move Permissions Up** and so on, so the two rows are never confused
-- Move a single change from the level diff with the CodeLens above it or with `Sonara: Move Change Up` / `Move Change Down` / `Move Change to Level...` for the change under the cursor
-- `Sonara: Next New Change` / `Previous New Change` walk through everything on New across files and repositories
-- Any edit - yours or an agent's - lands on New and shows as the difference from the version you accepted; the accepted version stays on its level
-- Staging through the regular Source Control view counts as Staged Changes, and unstaging there drops the changes one level down, to Verified. Committed parts leave the panel; after `git stash` and `git stash pop` the levels come back if the files return byte-identical
-- Every action is logged to the **Sonara Review** output channel, failures with their stack trace
-- Stored under `.vscode/sonara/review/`
-
-### Code Map
-
-See where the code of a project lives, the way a disk usage analyzer shows where the space goes.
-
-- A tree of the project with the numbers always on the row: a folder shows `files: N · lines: X · size`, a file shows `lines: X · size`; a binary file shows its size only
-- Every git repository of the window gets its own row with its totals and its folders inside, the same repositories Source Control shows; with one repository its folders sit at the top. A repository nested in another one is counted in its own row only
-- Uncommitted changes are added as `+X -Y` lines against the last commit; a file that is not in git yet counts all its lines as added
-- Counts the files git knows about plus new files that are not ignored; ignored folders such as `node_modules` stay out
-- The panel title carries the totals of all repositories together
-- Order by line count, largest first, or by name with folders first - the button in the panel title switches between them (`sonara.codeMap.sortBy`)
-- Numbers update by themselves when files change, are staged or committed; only changed files are read again
-- Click a file to open it
-- A repository and a folder have **Expand All** and **Collapse All** buttons, the same as in Review
-- The context menu of a file or folder has **Open Containing Folder**, **Copy Path**, **Copy Relative Path** and **Delete** (to the Trash, with a confirmation); copy and delete work on several selected rows at once. A repository row has the same menu without Delete
-
-### Media Preview
-
-VS Code's own player cannot play AAC sound, the usual sound of mp4 and m4a files: the picture plays, the volume button stays grey. Sonara Media Preview is the default viewer for `.mp4`, `.mov`, `.m4v` and `.m4a` files wherever they are opened: the Explorer, Code Map, Quick Open, a git diff.
-
-- A file with sound VS Code cannot play (AAC, Opus) plays from a copy where the picture stays as it is and the sound is converted to MP3 with `ffmpeg`; the file itself is not changed. A file with MP3, Vorbis, FLAC or PCM sound, or with no sound, plays as is
-- The copy lives in the extension storage while the tab is open; copies left by a closed window are removed a day later
-- Without `ffmpeg` and `ffprobe` on the `PATH` the player stays silent and says so; **Open with Default Application** plays the sound
-- VS Code's own viewer stays available through **Open With...**
-- What was checked and converted is logged to the **Sonara Media Preview** output channel
-
-### Voice
-
-Dictate notes, prompts, and task descriptions with a local Whisper model. Audio is captured and transcribed entirely on your machine.
-
-- Start/stop dictation with a single shortcut (`Ctrl+Shift+M`)
-- Three streaming modes: classic (record then transcribe), live (transcribe as you speak), and adaptive (classic for short clips, live for long ones)
-- The local transcription server starts only when you need it, can be toggled on/off from the status bar, and shuts itself down after a period of inactivity to free memory
-- GPU (CUDA) acceleration when available; if the GPU runs out of memory mid-transcription, Sonara offers to retry on CPU or with a smaller model
-- Project vocabulary biases Whisper toward your technical terms and proper names
-- Voice Log keeps the full dictation history as JSONL - search, copy, and clear it from the panel
-- No network connection required for recording or transcription
-- Every command is logged to the **Sonara Voice** output channel, with the error and its stack trace when something fails
-
-### Voice Transcripts
-
-Transcribe pre-recorded audio or video files (meetings, debriefs, design reviews) into searchable markdown.
-
-- Right-click an audio file or run `Sonara: Transcribe File...` from the Command Palette
-- Each transcript is saved as a markdown file under `.vscode/sonara/voice-transcripts/`
-- Metadata header captures source filename, duration, language, and creation date
-- Webview panel lists all transcripts with timestamps and durations
-
-### Time Tracking
-
-Track time per task, stored as plain daily files.
-
-- Start, stop, and toggle a timer from the Command Palette or the status bar
-- Time accrues to the active task in small slots while the timer runs
-- Per-day, per-user data stored as JSON under `.vscode/sonara/time-tracker/days/`
-- Open today's file with `Sonara: Open Today's Time Tracker File`
-- Every command is logged to the **Sonara Time Tracker** output channel, with the error and its stack trace when something fails
-
-## Requirements
-
-- **VS Code** 1.85 or newer.
-- **Voice recording currently runs on Linux only** (audio is captured via PulseAudio/PipeWire). Tasks and Time Tracking work on every platform; on macOS/Windows the voice commands show a clear message instead of recording.
-- **GPU is optional but recommended.** A CUDA GPU gives fast transcription and is required for the live streaming phase. Without a GPU, transcription runs on CPU and is considerably slower.
-- The first time the voice features activate, Sonara sets up a local Python environment and downloads the selected Whisper model (default `large-v3`, ~3 GB). This is the only step that needs the internet.
-
-## Install
-
-1. Download the latest `.vsix` from the [Releases](../../releases) page (or build it yourself - see [Building](#building)).
-2. In VS Code: `Extensions` view → `...` menu → `Install from VSIX...` → pick the file.
-3. Reload VS Code when prompted.
-
-## Quick Start
-
-1. **Open the sidebar.** Click the Sonara icon in the Activity Bar. Four panels appear: Tasks, Review, Voice Log, Voice Transcripts. The `.vscode/sonara/` folder is created automatically the first time you use a feature.
-2. **Create a task.** In the Tasks panel, click **New Task** (the `+` button), fill in the details, and it is saved as a markdown file.
-3. **Dictate.** Press `Ctrl+Shift+M` to start. On first use the Whisper model downloads (one time). Speak, then press `Ctrl+Shift+M` again to stop and save the entry to the Voice Log.
-4. **Several projects?** Review and Code Map show every repository at once. Tasks, Voice Log, Voice Transcripts and the Time Tracker work with one project at a time: use the **Active Project** selector in the title of Tasks or the voice panels to switch between workspace folders and the git repositories inside them - each keeps its own independent data. Until you pick one, Sonara takes the only project there is, or the project of the file open in the editor; a project you picked stays active until you pick another.
-
-## How the voice server works
-
-Sonara bundles a local server that runs [faster-whisper](https://github.com/SYSTRAN/faster-whisper). It is managed automatically so it does not waste memory when you are not dictating:
-
-- **Lazy start** - the server is not running until your first dictation or file transcription.
-- **Status bar toggle** - a `Voice: On / Off` item lets you turn the server on or off at any time. Turning it off frees the model from memory immediately. While it is off, starting a recording asks whether you want to turn it back on.
-- **Idle shutdown** - when on, the server shuts itself down after `sonara.voice.idleShutdownMinutes` of inactivity (default 10; set to 0 to never shut down) and starts again on your next dictation.
-- **GPU out-of-memory recovery** - if a transcription runs out of GPU memory, a prompt offers to retry the recording on CPU or with a smaller model, then restores your usual model.
-
-### Streaming modes
-
-Set `sonara.voice.streamingMode` (or use `Sonara: Change Streaming Mode`):
-
-- `off` - classic: record, stop, then transcribe in one shot. Best accuracy on short messages.
-- `on` - live: transcribe continuously while you speak. Requires a CUDA GPU.
-- `adaptive` - classic for short recordings, automatically switching to live once a recording passes `sonara.voice.adaptiveStreamingThresholdSec`. Requires a GPU for the live phase.
-
-### Vocabulary
-
-Edit `.vscode/sonara/vocabulary.md` (or run `Sonara: Edit Project Vocabulary`) to list technical terms, proper names, and project jargon - one term per line, `#` for comments. Whisper is biased toward these words across dictation and file transcription. Keep the list focused.
-
-## Tasks file format
-
-Each task is a `.md` file under `.vscode/sonara/tasks/`: a YAML frontmatter block followed by free-form markdown.
-
-```markdown
----
-title: Implement OAuth2 session refresh
-status: in-progress
-priority: high
-sprint: Q2 Growth
-labels:
-  - backend
-  - auth
-created: 2026-04-08T09:00:00.000Z
----
-
-<!-- Sonara task. Format and rules: .vscode/sonara/tasks/README.md -->
-
-Task description in free-form markdown.
-```
-
-> The YAML frontmatter **must be the first thing in the file** - line 1 is `---`, with no leading comment or blank line. The Sonara hint comment belongs in the body, after the closing `---`. Field order inside the frontmatter does not matter (it is parsed by key); the order above is just the convention Sonara writes.
-
-| Field | Required | Values |
-|-------|----------|--------|
-| `title` | No (filename used as fallback) | Any string |
-| `status` | No (null if omitted or invalid) | `activity`, `inbox`, `backlog`, `todo`, `in-progress`, `review`, `done`, `released`, `cancelled` |
-| `priority` | No (defaults to `medium`) | `highest`, `high`, `medium`, `low`, `lowest` |
-| `created` | No | ISO 8601 date string |
-| `sprint` | No | Any string |
-| `labels` | No | YAML array of strings |
-
-A `README.md` describing the full format is generated inside `.vscode/sonara/tasks/` of every initialized project.
-
-## Project files
-
-Everything Sonara stores lives under `.vscode/sonara/` in each project folder:
-
-| Path | Contents |
-|------|----------|
-| `tasks/` | One markdown file per task (+ a format `README.md`) |
-| `voice-log/voice-log.jsonl` | Dictation history (one JSON record per line) |
-| `vocabulary.md` | Project vocabulary that biases Whisper |
-| `voice-transcripts/` | File transcripts as markdown |
-| `time-tracker/days/` | Per-day time tracking data as JSON |
-| `review/` | Review levels: accepted file versions, per-file records, and a format `README.md` |
-
-Whether you commit these is up to you - the extension does not touch your `.gitignore`. Voice data can contain personal recordings; consider excluding `voice-log/` and `voice-transcripts/` from shared repositories.
-
-### Voice Log and time tracking formats
-
-**Voice Log** - one JSON object per line in `voice-log/voice-log.jsonl`:
-
-```json
-{"id": "a1b2c3", "timestamp": "2026-06-04T18:30:00.000Z", "text": "Add login screen", "language": "uk", "duration_sec": 4.2, "model": "large-v3", "tags": [], "copied": false}
-```
-
-**Time tracking** - one file per user per day at `time-tracker/days/<user>/<YYYY-MM-DD>.json`:
-
-```json
-{
-  "date": "2026-06-04",
-  "tasks": {
-    "implement-oauth2-session-refresh": {
-      "total": 1800,
-      "slots": [{ "start": "2026-06-04T09:00:00Z", "seconds": 900 }]
-    }
-  }
-}
-```
-
-Within a day file, `slots` are chronological and `total` is their sum. As with task frontmatter, object key order is not significant - only the order of array items (the `slots` sequence) is.
-
-## Keyboard shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+Shift+M` | Start / stop recording |
-| `Ctrl+Alt+M` | Cancel recording (discard audio) |
-
-## Configuration
-
-Open Settings (`Ctrl+,`) and search for `sonara`. Full list:
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `sonara.voice.model` | `large-v3` | Whisper model (`tiny`, `base`, `small`, `medium`, `large-v2`, `large-v3`) |
-| `sonara.voice.device` | `auto` | Compute device (`auto`, `cuda:0`, `cuda:1`, `cpu`) |
-| `sonara.voice.language` | `auto` | Transcription language, or `auto` to detect (23 languages available) |
-| `sonara.voice.computeType` | `auto` | faster-whisper compute type (`auto`, `float16`, `int8_float16`, `int8`, `float32`) |
-| `sonara.voice.vadFilter` | `true` | Voice activity detection filter |
-| `sonara.voice.audioInput` | `null` | Input device (`null` = system default; pick via `Sonara: Change Audio Input`) |
-| `sonara.voice.stopDelayMs` | `1000` | Extra capture time (ms) after Stop, so trailing words are not cut off |
-| `sonara.voice.streamingMode` | `off` | `off` (classic), `on` (live), or `adaptive` |
-| `sonara.voice.adaptiveStreamingThresholdSec` | `30` | In adaptive mode, switch to live after this many seconds |
-| `sonara.voice.streamingIntervalSec` | `2` | How often (s) live transcription emits a partial result |
-| `sonara.voice.beamSize` | `5` | Whisper beam size |
-| `sonara.voice.idleShutdownMinutes` | `10` | Idle minutes before the server shuts down (`0` = never) |
-| `sonara.voice.log.autoOpenPanel` | `false` | Auto-open the Voice Log panel on start |
-| `sonara.voice.log.showNotificationOnTranscribe` | `true` | Toast after each transcription |
-| `sonara.timeTracker.tickIntervalSec` | `15` | How often (s) time is credited while a timer runs |
-| `sonara.timeTracker.flushIntervalSec` | `60` | How often (s) pending time is written to disk |
-
-## Privacy
-
-Voice data never leaves your machine. Audio is captured locally, transcribed by the bundled Whisper server on `localhost`, and the dictation text is stored in `.vscode/sonara/voice-log/voice-log.jsonl` inside your project. Audio is not retained after transcription. No telemetry is collected.
-
-## Building
-
-Requires Docker (the build runs in a container) and the VS Code `code` CLI.
+Sonara also exposes a **read-only review CLI** for scripts and agents. After opening a repository in VS Code with Sonara active:
 
 ```sh
-make build        # compile + package into sonara-<version>.vsix
-make install-ext  # install the built .vsix into local VS Code
+.vscode/sonara/review/sonara-review levels
+.vscode/sonara/review/sonara-review list --level new
+.vscode/sonara/review/sonara-review diff src/example.ts --level new
 ```
 
-Run `make help` for all targets.
+The CLI reports review state; it does not move levels, stage or commit changes. See the [review guide](https://github.com/shapoval-dev/sonara/blob/HEAD/docs/review.md#read-only-cli).
+
+## Quick start
+
+**Requirements:** VS Code 1.85 or newer. Voice recording runs on Linux with PulseAudio or PipeWire; a CUDA GPU is optional for classic transcription and required for live transcription. The first voice setup downloads a local Whisper model (default large-v3, approximately 3 GB).
+
+1. Download the latest available `.vsix` from [GitHub Releases](https://github.com/shapoval-dev/sonara/releases).
+2. In VS Code, open Extensions, select the **...** menu, choose **Install from VSIX...**, and select the file.
+3. Open the Sonara sidebar and create a task, or open a Git repository to start reviewing changes.
+4. On Linux, press `Ctrl+Shift+M` to start dictating and press it again to stop.
+
+You can also install a downloaded package from the terminal:
+
+```sh
+code --install-extension sonara-0.1.0.vsix
+```
+
+## Local-first by design
+
+No account. No cloud transcription. No telemetry. Sonara keeps its project data under `.vscode/sonara/`, so you choose what stays local and what travels with the repository.
+
+| Data | Format |
+|---|---|
+| Tasks and file transcripts | Markdown |
+| Voice history | JSONL |
+| Time tracking | JSON |
+| Review state | Local accepted versions and records |
+
+Voice recording is transcribed locally; the original recording is not retained after dictation. Exclude private voice logs and transcripts from shared repositories if necessary.
+
+## Documentation
+
+| Guide | Contents |
+|---|---|
+| [Getting started](https://github.com/shapoval-dev/sonara/blob/HEAD/docs/getting-started.md) | Requirements, installation, multi-project workflow, shortcuts and building |
+| [Features](https://github.com/shapoval-dev/sonara/blob/HEAD/docs/features.md) | Tasks, Code Map, media preview, voice, transcripts and time tracking |
+| [Review](https://github.com/shapoval-dev/sonara/blob/HEAD/docs/review.md) | Review levels, worktrees, diffs, staging, reverting and CLI |
+| [Voice](https://github.com/shapoval-dev/sonara/blob/HEAD/docs/voice.md) | Whisper server, GPU/CPU behavior, streaming and vocabulary |
+| [Project files](https://github.com/shapoval-dev/sonara/blob/HEAD/docs/project-files.md) | Task format, storage layout, JSON formats and privacy |
+| [Configuration](https://github.com/shapoval-dev/sonara/blob/HEAD/docs/configuration.md) | All extension settings |
 
 ## License
 
-See [LICENSE](./LICENSE). The bundled Lucide icons are covered by [NOTICE](./NOTICE).
+[MIT](LICENSE). Third-party notices, including Lucide icons, are listed in [NOTICE](NOTICE).
